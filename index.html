@@ -21,7 +21,9 @@
   --good-soft: #e3f3e9;
   --bad: #b3261e;
   --bad-soft: #fbe4e2;
-  --bar-base: #3b5b8c;
+  --bar-base: #6b7380;
+  --c-b: #1f6fd1;
+  --c-r: #e07b00;
   --font-display: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
   --font-body: "IBM Plex Sans", Arial, sans-serif;
   color-scheme: light;
@@ -30,13 +32,13 @@
   :root:not([data-theme="light"]) {
     --bg: #12161d; --surface: #1b212b; --ink: #e8ecf2; --muted: #9aa4b5; --line: #2c3442;
     --accent: #ef6a5d; --accent-soft: #3a2220; --good: #5cc48a; --good-soft: #1d3326;
-    --bad: #f08079; --bad-soft: #3d2120; --bar-base: #7ea2d6; color-scheme: dark;
+    --bad: #f08079; --bad-soft: #3d2120; --bar-base: #8b93a1; --c-b: #6fa8f0; --c-r: #f5a54a; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #12161d; --surface: #1b212b; --ink: #e8ecf2; --muted: #9aa4b5; --line: #2c3442;
   --accent: #ef6a5d; --accent-soft: #3a2220; --good: #5cc48a; --good-soft: #1d3326;
-  --bad: #f08079; --bad-soft: #3d2120; --bar-base: #7ea2d6; color-scheme: dark;
+  --bad: #f08079; --bad-soft: #3d2120; --bar-base: #8b93a1; --c-b: #6fa8f0; --c-r: #f5a54a; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -54,6 +56,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 16px 24px 32px; display: grid
 .controls { display: grid; gap: 14px; }
 fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
 legend { font-weight: 600; margin-bottom: 6px; padding: 0; }
+legend.who { display: flex; align-items: center; gap: 8px; }
+legend.who::before { content: ""; width: 12px; height: 12px; border-radius: 3px; background: var(--wc); flex: none; }
+legend.who.b { --wc: var(--c-b); color: var(--c-b); }
+legend.who.r { --wc: var(--c-r); color: var(--c-r); }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 label { color: var(--ink); }
 .hint { font-size: 12.5px; color: var(--muted); }
@@ -127,11 +133,8 @@ table.grille .coef, table.grille .cat { display: block; color: var(--muted); fon
 table.grille .tags { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; align-items: flex-start; }
 table.grille .tag { font-size: 11.5px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
 table.grille .tag { border: 1.5px solid transparent; }
-table.grille .tag.b { --tc: #2f5fb3; }
-table.grille .tag.r { --tc: #8a3fa8; }
-:root[data-theme="dark"] table.grille .tag.b { --tc: #7fa6ea; }
-:root[data-theme="dark"] table.grille .tag.r { --tc: #c78be0; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) table.grille .tag.b { --tc: #7fa6ea; } :root:not([data-theme="light"]) table.grille .tag.r { --tc: #c78be0; } }
+table.grille .tag.b { --tc: var(--c-b); }
+table.grille .tag.r { --tc: var(--c-r); }
 table.grille .tag.now { background: transparent; border-color: var(--tc); color: var(--tc); }
 table.grille .tag.target { background: var(--tc); border-color: var(--tc); color: #fff; }
 table.grille .tag.option { background: transparent; border: 1.5px dashed var(--tc); color: var(--tc); }
@@ -153,7 +156,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
     <div class="controls">
 
       <fieldset>
-        <legend>Gaëlle B (Direction)</legend>
+        <legend class="who b">Gaëlle B (Direction)</legend>
         <div class="row">
           <span>Reclassement</span>
           <span class="seg" role="radiogroup" aria-label="Reclassement de Gaëlle B.">
@@ -179,7 +182,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
       <div class="divider"></div>
 
       <fieldset>
-        <legend>Gaëlle R (Responsable pédagogique)</legend>
+        <legend class="who r">Gaëlle R (Responsable pédagogique)</legend>
         <span class="hint">Aujourd'hui : groupe D, coefficient 305, avec une prime de responsabilité de 24 points (170,25 € par mois).</span>
         <div class="row">
           <span>Reclassement</span>
@@ -310,7 +313,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
   </section>
   <section class="panel detail" aria-labelledby="t-grille">
     <h2 id="t-grille">Grille de classification ÉCLAT – groupes D à H</h2>
-    <p class="hint">Le groupe se détermine d'après la réalité des missions confiées au salarié, selon quatre critères. Étiquettes bleues : Gaëlle B ; violettes : Gaëlle R. Contour plein : groupe actuel ; fond plein : groupe visé et retenu ; pointillés : groupe visé mais reclassement non retenu.</p>
+    <p class="hint">Le groupe se détermine d'après la réalité des missions confiées au salarié, selon quatre critères. Étiquettes bleues : Gaëlle B ; orange : Gaëlle R. Contour plein : groupe actuel ; fond plein : groupe visé et retenu ; pointillés : groupe visé mais reclassement non retenu.</p>
     <div class="table-wrap">
       <table class="grille">
         <colgroup><col class="cg"><col><col><col><col></colgroup>
@@ -394,8 +397,8 @@ table.grille tr.hl td { background: var(--accent-soft); }
     var W = 760, H = 320, L = 64, R = 16, T = 24, B = 64;
     var steps = [
       { k: "Budget hors mesures", v: BASE, type: "base" },
-      { k: "Gaëlle B.", v: -c.gb },
-      { k: "Gaëlle R.", v: -c.gr },
+      { k: "Gaëlle B.", v: -c.gb, col: "var(--c-b)" },
+      { k: "Gaëlle R.", v: -c.gr, col: "var(--c-r)" },
       { k: "Intervenants", v: -(c.rempl + c.attrib) },
       { k: "PPV", v: -c.ppv },
       { k: "Chèques cadeaux", v: -c.cc },
@@ -407,7 +410,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
       if (s.type === "base") { a = 0; b = s.v; run = s.v; }
       else if (s.type === "end") { a = 0; b = s.v; }
       else { a = run; b = run + s.v; run = b; }
-      bars.push({ k: s.k, v: s.v, a: a, b: b, type: s.type });
+      bars.push({ k: s.k, v: s.v, a: a, b: b, type: s.type, col: s.col });
       lo = Math.min(lo, a, b); hi = Math.max(hi, a, b);
     });
     var span = hi - lo || 1;
@@ -424,7 +427,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
     bars.forEach(function (b, i) {
       var x = L + i * bw + bw * 0.18, w = bw * 0.64;
       var top = y(Math.max(b.a, b.b)), h = Math.max(1, Math.abs(y(b.a) - y(b.b)));
-      var col = b.type === "base" ? "var(--bar-base)" : b.type === "end" ? (b.v < 0 ? "var(--bad)" : "var(--good)") : "var(--accent)";
+      var col = b.type === "base" ? "var(--bar-base)" : b.type === "end" ? (b.v < 0 ? "var(--bad)" : "var(--good)") : (b.col || "var(--accent)");
       var op = (b.type || b.v !== 0) ? 1 : 0.35;
       out.push('<rect x="' + x + '" y="' + top + '" width="' + w + '" height="' + h + '" rx="3" fill="' + col + '" opacity="' + op + '"/>');
       if (i < bars.length - 1 && !bars[i + 1].type) {
