@@ -373,7 +373,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
   function total(c) { return c.gb + c.gr + c.ppv + c.cc + c.rempl + c.attrib; }
 
   var cBP = costs(BP);
-  var BASE = total(cBP); // budget hors mesures : le BP à valider (0 €) + coût des mesures qu'il contient
+  var BASE = total(cBP); // prévisionnel avec le départ de Robin : le BP à valider (0 €) + coût des mesures qu'il contient
   var CHARGES_HORS = PRODUITS - BASE;
 
   function read() {
@@ -396,7 +396,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
     var svg = $("chart");
     var W = 760, H = 320, L = 64, R = 16, T = 24, B = 64;
     var steps = [
-      { k: "Budget hors mesures", v: BASE, type: "base" },
+      { k: "Prévisionnel avec|le départ de Robin", v: BASE, type: "base" },
       { k: "Gaëlle B.", v: -c.gb, col: "var(--c-b)" },
       { k: "Gaëlle R.", v: -c.gr, col: "var(--c-r)" },
       { k: "Intervenants", v: -(c.rempl + c.attrib) },
@@ -437,11 +437,14 @@ table.grille tr.hl td { background: var(--accent-soft); }
       var lbl = b.type ? eur(b.v) : (b.v === 0 ? "0 €" : eurS(b.v));
       var ly = b.type === "end" && b.v < 0 ? y(b.b) + 16 : top - 6;
       out.push('<text class="val" x="' + (x + w / 2) + '" y="' + ly + '" text-anchor="middle">' + lbl + '</text>');
-      var words = b.k.split(" ");
-      var line1 = words.length > 2 ? words.slice(0, 2).join(" ") : b.k.length > 14 && words.length === 2 ? words[0] : b.k;
-      var line2 = b.k.slice(line1.length).trim();
-      out.push('<text x="' + (x + w / 2) + '" y="' + (H - B + 18) + '" text-anchor="middle">' + line1 + '</text>');
-      if (line2) out.push('<text x="' + (x + w / 2) + '" y="' + (H - B + 33) + '" text-anchor="middle">' + line2 + '</text>');
+      var lines;
+      if (b.k.indexOf("|") > -1) lines = b.k.split("|");
+      else {
+        var words = b.k.split(" ");
+        var line1 = words.length > 2 ? words.slice(0, 2).join(" ") : b.k.length > 14 && words.length === 2 ? words[0] : b.k;
+        lines = [line1, b.k.slice(line1.length).trim()];
+      }
+      lines.forEach(function (t, li) { if (t) out.push('<text x="' + (x + w / 2) + '" y="' + (H - B + 18 + li * 15) + '" text-anchor="middle">' + t + '</text>'); });
     });
     svg.innerHTML = out.join("");
   }
