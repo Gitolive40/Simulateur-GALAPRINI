@@ -396,7 +396,7 @@ td.pos { color: var(--good); }
     var pts = s.grCoef - GR_ACT;
     var net = pts - (s.grp === "oui" ? GR_PRIME_PTS : 0);
     $("gr-hint").textContent = s.gr === "non" ? "Pas de reclassement : groupe D, 305 points et prime de 24 points maintenus."
-      : "+" + pts + " points par rapport à 305" + (s.grp === "oui" ? ", moins la prime de 24 points supprimée : " + (net > 0 ? "+" + net + " points payés en plus." : "salaire maintenu, sans surcoût.") : ", prime de 24 points maintenue en plus.");
+      : "+" + pts + " points par rapport à 305" + (s.grp === "oui" ? ", moins la prime de responsabilité : " + (net > 0 ? "+" + net + " points payés en plus." : "salaire maintenu, sans surcoût.") : ", prime de 24 points maintenue en plus.");
     var cc = $("cc-chip");
     if (s.ccM > 200) { cc.textContent = "Au-dessus du plafond"; cc.className = "chip ko"; } else { cc.textContent = "Sous le plafond"; cc.className = "chip ok"; }
     var netPpv = Math.round(3100 * (1 - 0.097 * 0.9825) / 10) * 10;
