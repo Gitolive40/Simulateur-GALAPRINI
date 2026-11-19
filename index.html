@@ -99,6 +99,14 @@ td.pos { color: var(--good); }
 .table-wrap { overflow-x: auto; }
 .notes { font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; }
 .notes p { margin: 0; max-width: 95ch; }
+.detail { grid-column: 1 / -1; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 1000px) { .detail-grid { grid-template-columns: 1fr; } }
+table.dt td, table.dt th { padding: 6px 8px; font-size: 14px; }
+table.dt tr.grp td { font-weight: 600; background: var(--bg); }
+table.dt tr.line td:first-child { padding-left: 20px; color: var(--ink); }
+table.dt tr.changed td { background: var(--accent-soft); }
+table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
 @media (prefers-reduced-motion: no-preference) { svg rect { transition: y .25s, height .25s; } }
 </style>
 </head>
@@ -259,6 +267,14 @@ td.pos { color: var(--good); }
       </div>
     </div>
   </section>
+  <section class="panel detail" aria-labelledby="t-detail">
+    <h2 id="t-detail">Budget détaillé 2026-2027 par compte</h2>
+    <p class="hint">Les lignes modifiées par vos choix sont surlignées. Colonne « BP à valider » : budget exporté de BasiCompta (résultat 0 €).</p>
+    <div class="detail-grid">
+      <div class="table-wrap"><table class="dt"><thead><tr><th>Charges</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-ch"></tbody></table></div>
+      <div class="table-wrap"><table class="dt"><thead><tr><th>Produits</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-pr"></tbody></table></div>
+    </div>
+  </section>
 </main>
 
 <script>
@@ -281,10 +297,11 @@ td.pos { color: var(--good); }
   function num(id, d) { var v = parseFloat($(id).value); return isNaN(v) ? d : v; }
 
   function costs(s) {
-    var gb = 0, gbAn = 0;
+    var gb = 0, gbAn = 0, gbBrut = 0, gbCh = 0, gbPrev = 0, grBrut = 0, grCh = 0;
     if (s.gb === "oui") {
       var d = Math.max(0, s.gbCoef - 375);
       gb = r100(d * V2 * MOIS * (1 + TX)) + PREV8;
+      gbBrut = r100(d * V2 * MOIS); gbPrev = PREV8; gbCh = gb - PREV8 - gbBrut;
       gbAn = r100(d * V2 * 12 * (1 + TX)) + PREV_AN;
     }
     var gr = 0, grAn = 0;
@@ -292,11 +309,12 @@ td.pos { color: var(--good); }
       var e = ((s.grCoef - GR_ACT) - (s.grp === "oui" ? GR_PRIME_PTS : 0)) * V2;
       e = Math.max(0, e);
       gr = r100(e * MOIS * (1 + TX));
+      grBrut = Math.min(gr, r100(e * MOIS)); grCh = gr - grBrut;
       grAn = r100(e * 12 * (1 + TX));
     }
     var rempl = s.hRobin * s.tarif;
     var attrib = (s.attrib === "oui" && s.tarif > TARIF_ACTUEL) ? H_ATTRIB * (s.tarif - TARIF_ACTUEL) : 0;
-    return { gb: gb, gr: gr, ppv: PPV[s.ppv], cc: s.ccM * s.ccN, rempl: rempl, attrib: attrib, gbAn: gbAn, grAn: grAn };
+    return { gb: gb, gr: gr, ppv: PPV[s.ppv], cc: s.ccM * s.ccN, rempl: rempl, attrib: attrib, gbAn: gbAn, grAn: grAn, gbBrut: gbBrut, gbCh: gbCh, gbPrev: gbPrev, grBrut: grBrut, grCh: grCh };
   }
   function total(c) { return c.gb + c.gr + c.ppv + c.cc + c.rempl + c.attrib; }
 
@@ -374,6 +392,87 @@ td.pos { color: var(--good); }
     svg.innerHTML = out.join("");
   }
 
+  function detailData(c) {
+    var ch = [
+      ["60 – Achats", [
+        ["604 – Prestataires extérieurs (cours, scolaires, spectacles, stages)", 22622.5 + c.rempl + c.attrib],
+        ["604 – Ménage", 5000],
+        ["606 – Achats non stockés de matières et fournitures", 500],
+        ["606 – Fournitures non stockables (eau, énergie)", 1000],
+        ["606 – Fournitures d'entretien et petit équipement", 2000],
+        ["606 – Autres fournitures", 5000]]],
+      ["61 – Services extérieurs", [
+        ["613 – Locations", 7000],
+        ["615 – Entretien et réparation", 1000],
+        ["616 – Assurance", 2000]]],
+      ["62 – Autres services extérieurs", [
+        ["622 – Honoraires", 500],
+        ["623 – Publicité, publication", 500],
+        ["625 – Déplacements, missions", 4000],
+        ["626 – Frais postaux et télécommunications", 650],
+        ["627 – Services bancaires", 350]]],
+      ["64 – Charges de personnel", [
+        ["641 – Rémunérations de base", 88200],
+        ["641 – Prime de précarité", 1000],
+        ["641 – Indemnité de rupture conventionnelle (Robin)", 600],
+        ["641 – PPV", c.ppv],
+        ["641 – Chèques cadeaux", c.cc],
+        ["641 – Reclassement de Gaëlle B. (salaire brut)", c.gbBrut],
+        ["641 – Reclassement de Gaëlle R. (salaire brut)", c.grBrut],
+        ["645 – Charges sociales de base", 63000 - PREV8],
+        ["645 – Charges sur reclassements", c.gbCh + c.grCh],
+        ["645 – Prévoyance cadre", c.gbPrev],
+        ["647 – Titres-restaurant", 7000],
+        ["648 – Formation", 3400]]],
+      ["65 – Autres charges de gestion courante", [
+        ["65 – Licences fédérales, cotisations", 12000]]],
+      ["68 – Dotations aux amortissements", [
+        ["681 – Dotations aux amortissements", 4500]]]
+    ];
+    var pr = [
+      ["70 – Ventes et prestations", [
+        ["706 – Scolaires", 24000], ["706 – Crèche", 1400], ["706 – Hôpital", 3500],
+        ["706 – Stages", 45000], ["706 – Prestations", 10000], ["706 – Billetterie", 12000],
+        ["707 – Vente de marchandises", 8000], ["708 – Produits des activités annexes", 500]]],
+      ["74 – Subventions d'exploitation", [
+        ["74 – Commune", 4000], ["74 – Communauté de communes", 10000], ["74 – Département", 0]]],
+      ["75 – Autres produits de gestion courante", [
+        ["758 – Participations des adhérents", 120000], ["756 – Licences remboursées par les adhérents", 10000]]],
+      ["76 – Produits financiers", [
+        ["76 – Intérêts des placements", 3000]]]
+    ];
+    return { ch: ch, pr: pr };
+  }
+  var DBP = detailData(cBP);
+  function renderTable(id, sim, bp, totalLabel, invert) {
+    var html = "", tS = 0, tB = 0;
+    sim.forEach(function (g, gi) {
+      var gS = 0, gB = 0, lines = "";
+      g[1].forEach(function (l, li) {
+        var a = l[1], b = bp[gi][1][li][1]; gS += a; gB += b;
+        var d = Math.round(a / 10) * 10 - Math.round(b / 10) * 10;
+        var cls = d === 0 ? "" : (invert ? (d > 0 ? "pos" : "neg") : (d > 0 ? "neg" : "pos"));
+        lines += '<tr class="line' + (d !== 0 ? " changed" : "") + '"><td>' + l[0] + '</td><td>' + eur(a) + '</td><td>' + eur(b) + '</td><td class="' + cls + '">' + (d === 0 ? "–" : eurS(d)) + '</td></tr>';
+      });
+      tS += gS; tB += gB;
+      var gd = Math.round(gS / 10) * 10 - Math.round(gB / 10) * 10;
+      var gcls = gd === 0 ? "" : (invert ? (gd > 0 ? "pos" : "neg") : (gd > 0 ? "neg" : "pos"));
+      html += '<tr class="grp"><td>' + g[0] + '</td><td>' + eur(gS) + '</td><td>' + eur(gB) + '</td><td class="' + gcls + '">' + (gd === 0 ? "–" : eurS(gd)) + '</td></tr>' + lines;
+    });
+    var td = Math.round(tS / 10) * 10 - Math.round(tB / 10) * 10;
+    var tcls = td === 0 ? "" : (invert ? (td > 0 ? "pos" : "neg") : (td > 0 ? "neg" : "pos"));
+    html += '<tr class="tot"><td>' + totalLabel + '</td><td>' + eur(tS) + '</td><td>' + eur(tB) + '</td><td class="' + tcls + '">' + (td === 0 ? "–" : eurS(td)) + '</td></tr>';
+    $(id).innerHTML = html;
+    return tS;
+  }
+  function renderDetail(c, res) {
+    var D = detailData(c);
+    var tc = renderTable("dt-ch", D.ch, DBP.ch, "Total des charges", false);
+    var tp = renderTable("dt-pr", D.pr, DBP.pr, "Total des produits", true);
+    var r = Math.round((tp - tc) / 10) * 10;
+    $("dt-pr").insertAdjacentHTML("beforeend", '<tr class="tot"><td>Résultat prévisionnel au 31/08/2027</td><td class="' + (r < 0 ? "neg" : "pos") + '">' + eur(r) + '</td><td>0 €</td><td class="' + (r === 0 ? "" : r > 0 ? "pos" : "neg") + '">' + (r === 0 ? "–" : eurS(r)) + '</td></tr>');
+  }
+
   function update() {
     // synchro curseurs / champs
     var s = read();
@@ -439,6 +538,7 @@ td.pos { color: var(--good); }
     $("annual").textContent = an.length ? "Coûts durables en année pleine (2027-2028) : " + an.join(" ; ") + "." : "Aucun coût salarial durable supplémentaire en année pleine.";
 
     drawChart(c, res);
+    renderDetail(c, res);
   }
 
   function link(numId, rangeId) {
