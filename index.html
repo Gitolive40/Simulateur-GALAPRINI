@@ -118,6 +118,17 @@ table.dt tr.grp td { font-weight: 600; background: var(--bg); }
 table.dt tr.line td:first-child { padding-left: 20px; color: var(--ink); }
 table.dt tr.changed td { background: var(--accent-soft); }
 table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+table.grille { min-width: 860px; table-layout: fixed; }
+table.grille col.cg { width: 150px; }
+table.grille th, table.grille td { text-align: left; vertical-align: top; font-size: 13.5px; line-height: 1.4; padding: 10px; }
+table.grille td.grp-cell { display: table-cell; }
+table.grille td.grp-cell strong { display: block; font-family: var(--font-display); font-size: 22px; color: var(--accent); }
+table.grille .coef, table.grille .cat { display: block; color: var(--muted); font-size: 12.5px; }
+table.grille .tags { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; align-items: flex-start; }
+table.grille .tag { font-size: 11.5px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
+table.grille .tag.now { background: var(--bg); border: 1px solid var(--line); color: var(--ink); }
+table.grille .tag.target { background: var(--accent); color: #fff; }
+table.grille tr.hl td { background: var(--accent-soft); }
 @media (prefers-reduced-motion: no-preference) { svg rect { transition: y .25s, height .25s; } }
 </style>
 </head>
@@ -289,6 +300,24 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
       <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><tbody id="dt-pr-tot"></tbody></table></div>
     </div>
     <div class="result-bar" id="dt-res"></div>
+  </section>
+  <section class="panel detail" aria-labelledby="t-grille">
+    <h2 id="t-grille">Grille de classification ÉCLAT – groupes D à H</h2>
+    <p class="hint">Le groupe se détermine d'après la réalité des missions confiées au salarié, selon quatre critères. Les étiquettes indiquent la situation actuelle et le groupe choisi dans le simulateur.</p>
+    <div class="table-wrap">
+      <table class="grille">
+        <colgroup><col class="cg"><col><col><col><col></colgroup>
+        <thead><tr><th>Groupe</th><th>Autonomie</th><th>Responsabilité</th><th>Technicité</th><th>Relationnel</th></tr></thead>
+        <tbody>
+<tr id="grille-D"><td class="grp-cell"><strong>D</strong><span class="coef">305 pts</span><span class="cat">Agent de maîtrise</span><span class="tags" id="tags-D"></span></td><td>Le salarié peut interpréter et adapter les processus. Le contrôle est périodique.</td><td>Responsabilité d'un budget prescrit. Participe à l'élaboration des procédures de l'équipe/du service. Implique des fonctions de coordination et de « contrôle » d'autres salariés.</td><td>Compétences techniques et relationnelles nécessaires à la maîtrise d'un domaine d'activité.</td><td>Les échanges supposent une capacité à argumenter et à désamorcer les conflits.</td></tr>
+<tr id="grille-E"><td class="grp-cell"><strong>E</strong><span class="coef">325 pts</span><span class="cat">Agent de maîtrise</span><span class="tags" id="tags-E"></span></td><td>Le salarié interprète et adapte les processus et leur mise en œuvre sous le contrôle ponctuel de son responsable hiérarchique.</td><td>Responsabilité d'un budget prescrit. Participe à l'élaboration des procédures de l'équipe/du service. Implique des fonctions de coordination et de « contrôle » d'autres salariés.</td><td>Compétences techniques et relationnelles nécessaires à la maîtrise d'un domaine d'activité.</td><td>Capacité de représentation en externe (partenaires, prestataires, institutions), diplomatie.</td></tr>
+<tr id="grille-F"><td class="grp-cell"><strong>F</strong><span class="coef">350 pts</span><span class="cat">Agent de maîtrise</span><span class="tags" id="tags-F"></span></td><td>Le salarié peut créer lui-même ses processus. Le salarié rend compte au terme de sa mission et est évalué sur les écarts entre les attendus et le réalisé. Le contrôle s'effectue a posteriori.</td><td>Participe à l'élaboration des directives et/ou d'un budget limité à son périmètre d'action et est responsable de son exécution. Il peut assurer la responsabilité hiérarchique d'autres salariés dans le cadre d'une délégation de responsabilité.</td><td>Compétences élargies impliquant une très bonne maîtrise d'un ou plusieurs domaines d'intervention.</td><td>Capacité de représentation en externe (partenaires, prestataires, institutions), diplomatie.</td></tr>
+<tr id="grille-G"><td class="grp-cell"><strong>G</strong><span class="coef">375 pts</span><span class="cat">Cadre</span><span class="tags" id="tags-G"></span></td><td>Le salarié peut créer lui-même ses processus. Le salarié rend compte au terme de sa mission et est évalué sur les écarts entre les attendus et le réalisé. Le contrôle s'effectue a posteriori.</td><td>Participe à l'élaboration des directives et/ou d'un budget limité à son périmètre d'action et est responsable de son exécution. Il peut assurer la responsabilité hiérarchique d'autres salariés dans le cadre d'une délégation de responsabilité.</td><td>Compétences élargies impliquant une très bonne maîtrise d'un ou plusieurs domaines d'intervention.</td><td>Capacité à engager l'organisation vis-à-vis de l'externe, négociation.</td></tr>
+<tr id="grille-H"><td class="grp-cell"><strong>H</strong><span class="coef">400 pts</span><span class="cat">Cadre</span><span class="tags" id="tags-H"></span></td><td>L'autonomie est inhérente au statut de cadre. Elle est définie en fonction du poste occupé dans la structure. Le salarié rend compte au terme de sa mission et est évalué sur les écarts entre les attendus et le réalisé. Le contrôle s'effectue obligatoirement a posteriori.</td><td>Définit et assume la politique économique de la structure et/ou assume la responsabilité hiérarchique et disciplinaire et/ou assume la responsabilité juridique de l'activité mise en œuvre. Assure la représentation de la structure dans tout ou partie de ces compétences.</td><td>Expertise dans un ou plusieurs domaines de compétences. Au groupe H, peut assurer des missions de développement sur un secteur d'activité ou ponctuellement sur plusieurs secteurs d'activités.</td><td>Capacité à engager l'organisation vis-à-vis de l'externe, négociation.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint">Source : convention collective ÉCLAT, article 1.5.1 (grille issue des avenants n° 182 et 193), édition Hexopée août 2022, p. 130 à 132. Coefficients minimaux en vigueur en 2026 (le groupe D est passé de 300 à 305 points depuis cette édition). Techniciens et agents de maîtrise : groupes C à F ; cadres : groupes G à K.</p>
   </section>
 </main>
 
@@ -489,6 +518,15 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     bar.innerHTML = '<span>Résultat prévisionnel au 31/08/2027</span><span><span class="big">' + eur(r) + '</span></span>';
   }
 
+  function renderGrille(s) {
+    ["D", "E", "F", "G", "H"].forEach(function (g) { $("tags-" + g).innerHTML = ""; $("grille-" + g).className = ""; });
+    function tag(g, txt, cls) { var el = $("tags-" + g); if (el) el.insertAdjacentHTML("beforeend", '<span class="tag ' + cls + '">' + txt + '</span>'); }
+    tag("D", "Gaëlle R : actuel", "now");
+    tag("F", "Gaëlle B : actuel", "now");
+    if (s.gr === "oui") { tag(s.grg, "Gaëlle R : visé", "target"); $("grille-" + s.grg).className = "hl"; }
+    if (s.gb === "oui") { tag(s.gbg, "Gaëlle B : visé", "target"); $("grille-" + s.gbg).className = "hl"; }
+  }
+
   function update() {
     // synchro curseurs / champs
     var s = read();
@@ -550,6 +588,7 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
 
 
     drawChart(c, res);
+    renderGrille(s);
     renderDetail(c, res);
   }
 
