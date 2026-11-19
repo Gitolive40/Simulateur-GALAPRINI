@@ -487,7 +487,7 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     var tp = renderTable("dt-pr", D.pr, DBP.pr, "Total des produits", true);
     var r = Math.round((tp - tc) / 10) * 10;
     var bar = $("dt-res"); bar.className = "result-bar " + (r < 0 ? "neg" : "pos");
-    bar.innerHTML = '<span>Résultat prévisionnel au 31/08/2027 (produits − charges)</span><span><span class="big">' + eur(r) + '</span> <span class="meta">BP à valider : 0 €' + (r === 0 ? "" : " · écart " + eurS(r)) + '</span></span>';
+    bar.innerHTML = '<span>Résultat prévisionnel au 31/08/2027 (produits − charges)</span><span><span class="big">' + eur(r) + '</span></span>';
   }
 
   function update() {
