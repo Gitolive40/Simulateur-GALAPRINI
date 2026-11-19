@@ -102,7 +102,18 @@ td.pos { color: var(--good); }
 .detail { grid-column: 1 / -1; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 @media (max-width: 1000px) { .detail-grid { grid-template-columns: 1fr; } }
-table.dt td, table.dt th { padding: 6px 8px; font-size: 14px; }
+table.dt { table-layout: fixed; }
+table.dt col.cn { width: 112px; }
+@media (max-width: 560px) { table.dt col.cn { width: 84px; } }
+table.dt td, table.dt th { padding: 6px 8px; font-size: 14px; overflow-wrap: anywhere; }
+.detail-grid.totals { margin-top: -14px; }
+.detail-grid.totals table.dt td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); background: var(--bg); }
+.result-bar { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: 8px; background: var(--good-soft); font-weight: 700; font-size: 16px; }
+.result-bar.neg { background: var(--bad-soft); }
+.result-bar .big { font-family: var(--font-display); font-size: 24px; font-variant-numeric: tabular-nums; }
+.result-bar.neg .big { color: var(--bad); }
+.result-bar.pos .big { color: var(--good); }
+.result-bar .meta { font-weight: 400; font-size: 13px; color: var(--muted); }
 table.dt tr.grp td { font-weight: 600; background: var(--bg); }
 table.dt tr.line td:first-child { padding-left: 20px; color: var(--ink); }
 table.dt tr.changed td { background: var(--accent-soft); }
@@ -271,9 +282,14 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     <h2 id="t-detail">Budget détaillé 2026-2027 par compte</h2>
     <p class="hint">Les lignes modifiées par vos choix sont surlignées. Colonne « BP à valider » : budget exporté de BasiCompta (résultat 0 €).</p>
     <div class="detail-grid">
-      <div class="table-wrap"><table class="dt"><thead><tr><th>Charges</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-ch"></tbody></table></div>
-      <div class="table-wrap"><table class="dt"><thead><tr><th>Produits</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-pr"></tbody></table></div>
+      <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><thead><tr><th>Charges</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-ch"></tbody></table></div>
+      <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><thead><tr><th>Produits</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-pr"></tbody></table></div>
     </div>
+    <div class="detail-grid totals">
+      <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><tbody id="dt-ch-tot"></tbody></table></div>
+      <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><tbody id="dt-pr-tot"></tbody></table></div>
+    </div>
+    <div class="result-bar" id="dt-res"></div>
   </section>
 </main>
 
@@ -461,8 +477,8 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     });
     var td = Math.round(tS / 10) * 10 - Math.round(tB / 10) * 10;
     var tcls = td === 0 ? "" : (invert ? (td > 0 ? "pos" : "neg") : (td > 0 ? "neg" : "pos"));
-    html += '<tr class="tot"><td>' + totalLabel + '</td><td>' + eur(tS) + '</td><td>' + eur(tB) + '</td><td class="' + tcls + '">' + (td === 0 ? "–" : eurS(td)) + '</td></tr>';
     $(id).innerHTML = html;
+    $(id + "-tot").innerHTML = '<tr><td>' + totalLabel + '</td><td>' + eur(tS) + '</td><td>' + eur(tB) + '</td><td class="' + tcls + '">' + (td === 0 ? "–" : eurS(td)) + '</td></tr>';
     return tS;
   }
   function renderDetail(c, res) {
@@ -470,7 +486,8 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     var tc = renderTable("dt-ch", D.ch, DBP.ch, "Total des charges", false);
     var tp = renderTable("dt-pr", D.pr, DBP.pr, "Total des produits", true);
     var r = Math.round((tp - tc) / 10) * 10;
-    $("dt-pr").insertAdjacentHTML("beforeend", '<tr class="tot"><td>Résultat prévisionnel au 31/08/2027</td><td class="' + (r < 0 ? "neg" : "pos") + '">' + eur(r) + '</td><td>0 €</td><td class="' + (r === 0 ? "" : r > 0 ? "pos" : "neg") + '">' + (r === 0 ? "–" : eurS(r)) + '</td></tr>');
+    var bar = $("dt-res"); bar.className = "result-bar " + (r < 0 ? "neg" : "pos");
+    bar.innerHTML = '<span>Résultat prévisionnel au 31/08/2027 (produits − charges)</span><span><span class="big">' + eur(r) + '</span> <span class="meta">BP à valider : 0 €' + (r === 0 ? "" : " · écart " + eurS(r)) + '</span></span>';
   }
 
   function update() {
