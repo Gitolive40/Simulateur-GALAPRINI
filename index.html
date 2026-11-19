@@ -368,7 +368,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
     }
     var rempl = s.hRobin * s.tarif;
     var attrib = (s.attrib === "oui" && s.tarif > TARIF_ACTUEL) ? H_ATTRIB * (s.tarif - TARIF_ACTUEL) : 0;
-    return { gb: gb, gr: gr, ppv: PPV[s.ppv], cc: s.ccM * s.ccN, rempl: rempl, attrib: attrib, gbAn: gbAn, grAn: grAn, gbBrut: gbBrut, gbCh: gbCh, gbPrev: gbPrev, grBrut: grBrut, grCh: grCh };
+    return { gb: gb, gr: gr, ppv: PPV[s.ppv], cc: s.ccM * s.ccN, rempl: rempl, rempl35: s.hRobin * TARIF_ACTUEL, attrib: attrib, gbAn: gbAn, grAn: grAn, gbBrut: gbBrut, gbCh: gbCh, gbPrev: gbPrev, grBrut: grBrut, grCh: grCh };
   }
   function total(c) { return c.gb + c.gr + c.ppv + c.cc + c.rempl + c.attrib; }
 
@@ -396,10 +396,10 @@ table.grille tr.hl td { background: var(--accent-soft); }
     var svg = $("chart");
     var W = 760, H = 320, L = 64, R = 16, T = 24, B = 64;
     var steps = [
-      { k: "Prévisionnel avec|le départ de Robin", v: BASE, type: "base" },
+      { k: "Prévisionnel avec|le départ de Robin", v: BASE - c.rempl35, type: "base" },
       { k: "Gaëlle B.", v: -c.gb, col: "var(--c-b)" },
       { k: "Gaëlle R.", v: -c.gr, col: "var(--c-r)" },
-      { k: "Intervenants", v: -(c.rempl + c.attrib) },
+      { k: "Hausse du tarif|intervenants", v: -(c.rempl - c.rempl35 + c.attrib) },
       { k: "PPV", v: -c.ppv },
       { k: "Chèques cadeaux", v: -c.cc },
       { k: "Résultat au|31/08/2027", v: res, type: "end" }
@@ -576,7 +576,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
     $("v-res").textContent = eur(res);
     var tile = $("tile-res"); tile.className = "tile main " + (res < 0 ? "neg" : "pos");
     $("v-ecart").textContent = eurS(res - resBP);
-    $("v-cout").textContent = eur(cost);
+    $("v-cout").textContent = eur(cost - c.rempl35);
 
     // tableau
     var rows = [
