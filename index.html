@@ -274,7 +274,6 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
       <div class="notes">
         <p>Période : janvier à août 2027 (8 mois) pour les mesures salariales, charges patronales comprises (35 %). Valeur du point V2 : 6,84 € (hypothèse 2027).</p>
         <p>Le passage de Gaëlle B. en groupe G ou H donne le statut cadre : prévoyance cadre d'environ 370 € sur 8 mois (550 € par an).</p>
-        <p id="annual"></p>
       </div>
     </div>
   </section>
@@ -549,10 +548,6 @@ table.dt tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     }).join("");
     $("tbody").innerHTML = html;
 
-    var an = [];
-    if (c.gbAn) an.push("reclassement de Gaëlle B. ≈ " + eur(c.gbAn) + " par an");
-    if (c.grAn) an.push("points supplémentaires de Gaëlle R. ≈ " + eur(c.grAn) + " par an");
-    $("annual").textContent = an.length ? "Coûts durables en année pleine (2027-2028) : " + an.join(" ; ") + "." : "Aucun coût salarial durable supplémentaire en année pleine.";
 
     drawChart(c, res);
     renderDetail(c, res);
