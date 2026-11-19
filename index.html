@@ -126,8 +126,15 @@ table.grille td.grp-cell strong { display: block; font-family: var(--font-displa
 table.grille .coef, table.grille .cat { display: block; color: var(--muted); font-size: 12.5px; }
 table.grille .tags { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; align-items: flex-start; }
 table.grille .tag { font-size: 11.5px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
-table.grille .tag.now { background: var(--bg); border: 1px solid var(--line); color: var(--ink); }
-table.grille .tag.target { background: var(--accent); color: #fff; }
+table.grille .tag { border: 1.5px solid transparent; }
+table.grille .tag.b { --tc: #2f5fb3; }
+table.grille .tag.r { --tc: #8a3fa8; }
+:root[data-theme="dark"] table.grille .tag.b { --tc: #7fa6ea; }
+:root[data-theme="dark"] table.grille .tag.r { --tc: #c78be0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) table.grille .tag.b { --tc: #7fa6ea; } :root:not([data-theme="light"]) table.grille .tag.r { --tc: #c78be0; } }
+table.grille .tag.now { background: transparent; border-color: var(--tc); color: var(--tc); }
+table.grille .tag.target { background: var(--tc); border-color: var(--tc); color: #fff; }
+table.grille .tag.option { background: transparent; border: 1.5px dashed var(--tc); color: var(--tc); }
 table.grille tr.hl td { background: var(--accent-soft); }
 @media (prefers-reduced-motion: no-preference) { svg rect { transition: y .25s, height .25s; } }
 </style>
@@ -303,7 +310,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
   </section>
   <section class="panel detail" aria-labelledby="t-grille">
     <h2 id="t-grille">Grille de classification ÉCLAT – groupes D à H</h2>
-    <p class="hint">Le groupe se détermine d'après la réalité des missions confiées au salarié, selon quatre critères. Les étiquettes indiquent la situation actuelle et le groupe choisi dans le simulateur.</p>
+    <p class="hint">Le groupe se détermine d'après la réalité des missions confiées au salarié, selon quatre critères. Étiquettes bleues : Gaëlle B ; violettes : Gaëlle R. Contour plein : groupe actuel ; fond plein : groupe visé et retenu ; pointillés : groupe visé mais reclassement non retenu.</p>
     <div class="table-wrap">
       <table class="grille">
         <colgroup><col class="cg"><col><col><col><col></colgroup>
@@ -521,10 +528,12 @@ table.grille tr.hl td { background: var(--accent-soft); }
   function renderGrille(s) {
     ["D", "E", "F", "G", "H"].forEach(function (g) { $("tags-" + g).innerHTML = ""; $("grille-" + g).className = ""; });
     function tag(g, txt, cls) { var el = $("tags-" + g); if (el) el.insertAdjacentHTML("beforeend", '<span class="tag ' + cls + '">' + txt + '</span>'); }
-    tag("D", "Gaëlle R : actuel", "now");
-    tag("F", "Gaëlle B : actuel", "now");
-    if (s.gr === "oui") { tag(s.grg, "Gaëlle R : visé", "target"); $("grille-" + s.grg).className = "hl"; }
-    if (s.gb === "oui") { tag(s.gbg, "Gaëlle B : visé", "target"); $("grille-" + s.gbg).className = "hl"; }
+    tag("F", "Gaëlle B : actuel", "now b");
+    tag("D", "Gaëlle R : actuel", "now r");
+    if (s.gb === "oui") { tag(s.gbg, "Gaëlle B : visé", "target b"); $("grille-" + s.gbg).className = "hl"; }
+    else tag(s.gbg, "Gaëlle B : visé (non retenu)", "option b");
+    if (s.gr === "oui") { tag(s.grg, "Gaëlle R : visé", "target r"); $("grille-" + s.grg).className = "hl"; }
+    else tag(s.grg, "Gaëlle R : visé (non retenu)", "option r");
   }
 
   function update() {
