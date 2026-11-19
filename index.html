@@ -145,14 +145,21 @@ td.pos { color: var(--good); }
         <legend>Gaëlle R. – responsable pédagogique</legend>
         <span class="hint">Aujourd'hui : groupe D, coefficient 305, avec une prime de responsabilité de 24 points (170,25 € par mois). Les points d'ancienneté sont déjà compris dans le BP.</span>
         <div class="row">
-          <span>Reclassement en groupe E</span>
+          <span>Reclassement</span>
           <span class="seg" role="radiogroup" aria-label="Reclassement de Gaëlle R.">
             <input type="radio" name="gr" id="gr-oui" value="oui" checked><label for="gr-oui">Oui</label>
             <input type="radio" name="gr" id="gr-non" value="non"><label for="gr-non">Non</label>
           </span>
         </div>
         <div class="row">
-          <label for="gr-coef">Coefficient visé en groupe E (points)</label>
+          <span>Groupe</span>
+          <span class="seg" role="radiogroup" aria-label="Groupe visé pour Gaëlle R.">
+            <input type="radio" name="grg" id="grg-e" value="E" checked><label for="grg-e">E</label>
+            <input type="radio" name="grg" id="grg-f" value="F"><label for="grg-f">F</label>
+          </span>
+        </div>
+        <div class="row">
+          <label for="gr-coef">Coefficient visé (points)</label>
           <input type="number" id="gr-coef" min="325" max="420" step="1" value="325">
         </div>
         <input type="range" id="gr-coef-r" min="325" max="420" step="1" value="325" aria-label="Coefficient visé de Gaëlle R., curseur">
@@ -164,6 +171,7 @@ td.pos { color: var(--good); }
           </span>
         </div>
         <span class="hint" id="gr-hint"></span>
+        <div class="row"><span class="hint">Minimum : groupe E 325 points, groupe F 350 points</span><span id="gr-chip" class="chip ok">Conforme</span></div>
       </fieldset>
 
       <div class="divider"></div>
@@ -259,8 +267,8 @@ td.pos { color: var(--good); }
   var H_ATTRIB = 443.5, TARIF_ACTUEL = 35, GR_ACT = 305, GR_PRIME_PTS = 24;
   var PRODUITS = 251400;
   var PPV = { non: 0, dec: 3600, jan: 3100 };
-  var BP = { gb: "oui", gbg: "H", gbCoef: 435, gr: "oui", grCoef: 325, grp: "oui", ppv: "dec", ccM: 200, ccN: 6, tarif: 40, attrib: "oui", hRobin: 204 };
-  var NONE = { gb: "non", gbg: "H", gbCoef: 435, gr: "non", grCoef: 325, grp: "oui", ppv: "non", ccM: 200, ccN: 6, tarif: 35, attrib: "non", hRobin: 204 };
+  var BP = { gb: "oui", gbg: "H", gbCoef: 435, gr: "oui", grg: "E", grCoef: 325, grp: "oui", ppv: "dec", ccM: 200, ccN: 6, tarif: 40, attrib: "oui", hRobin: 204 };
+  var NONE = { gb: "non", gbg: "H", gbCoef: 435, gr: "non", grg: "E", grCoef: 325, grp: "oui", ppv: "non", ccM: 200, ccN: 6, tarif: 35, attrib: "non", hRobin: 204 };
 
   var fmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
   function eur(x) { return fmt.format(Math.round(x / 10) * 10) + " €"; }
@@ -299,14 +307,14 @@ td.pos { color: var(--good); }
   function read() {
     return {
       gb: radio("gb"), gbg: radio("gbg"), gbCoef: num("gb-coef", 435),
-      gr: radio("gr"), grCoef: num("gr-coef", 325), grp: radio("grp"),
+      gr: radio("gr"), grg: radio("grg"), grCoef: num("gr-coef", 325), grp: radio("grp"),
       ppv: radio("ppv"), ccM: num("cc-m", 0), ccN: num("cc-n", 0),
       tarif: parseFloat(radio("tarif")), attrib: radio("attrib"), hRobin: num("h-robin", 0)
     };
   }
   function apply(s) {
     setRadio("gb", s.gb); setRadio("gbg", s.gbg); $("gb-coef").value = s.gbCoef; $("gb-coef-r").value = s.gbCoef;
-    setRadio("gr", s.gr); $("gr-coef").value = s.grCoef; $("gr-coef-r").value = s.grCoef; setRadio("grp", s.grp);
+    setRadio("gr", s.gr); setRadio("grg", s.grg); $("gr-coef").value = s.grCoef; $("gr-coef-r").value = s.grCoef; setRadio("grp", s.grp);
     setRadio("ppv", s.ppv); $("cc-m").value = s.ccM; $("cc-n").value = s.ccN;
     setRadio("tarif", String(s.tarif)); setRadio("attrib", s.attrib); $("h-robin").value = s.hRobin;
     update();
@@ -380,6 +388,11 @@ td.pos { color: var(--good); }
     if (s.gb === "non") { chip.textContent = "Reste en groupe F"; chip.className = "chip ok"; }
     else if (s.gbCoef >= minG) { chip.textContent = "Conforme (min. " + minG + " pts)"; chip.className = "chip ok"; }
     else { chip.textContent = "Sous le minimum du groupe " + s.gbg + " (" + minG + " pts)"; chip.className = "chip ko"; }
+    var minR = s.grg === "F" ? 350 : 325;
+    var chipR = $("gr-chip");
+    if (s.gr === "non") { chipR.textContent = "Reste en groupe D"; chipR.className = "chip ok"; }
+    else if (s.grCoef >= minR) { chipR.textContent = "Conforme (min. " + minR + " pts)"; chipR.className = "chip ok"; }
+    else { chipR.textContent = "Sous le minimum du groupe " + s.grg + " (" + minR + " pts)"; chipR.className = "chip ko"; }
     var pts = s.grCoef - GR_ACT;
     var net = pts - (s.grp === "oui" ? GR_PRIME_PTS : 0);
     $("gr-hint").textContent = s.gr === "non" ? "Pas de reclassement : groupe D, 305 points et prime de 24 points maintenus."
@@ -437,6 +450,13 @@ td.pos { color: var(--good); }
   document.querySelectorAll("input").forEach(function (el) {
     if (["gb-coef", "gb-coef-r", "gr-coef", "gr-coef-r"].indexOf(el.id) === -1) el.addEventListener("change", update);
     if (el.type === "number") el.addEventListener("input", update);
+  });
+  document.querySelectorAll('input[name="grg"]').forEach(function (el) {
+    el.addEventListener("change", function () {
+      var m = this.value === "F" ? 350 : 325;
+      if (num("gr-coef", 0) < m || (this.value === "E" && num("gr-coef", 0) === 350)) { $("gr-coef").value = m; $("gr-coef-r").value = m; }
+      update();
+    });
   });
   $("reset-bp").addEventListener("click", function () { apply(BP); });
   $("reset-none").addEventListener("click", function () { apply(NONE); });
