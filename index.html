@@ -143,7 +143,7 @@ td.pos { color: var(--good); }
 
       <fieldset>
         <legend>Gaëlle R. – responsable pédagogique</legend>
-        <span class="hint">Aujourd'hui : groupe D, coefficient de base 305 + points d'ancienneté, avec une prime de responsabilité de 170,25 € par mois.</span>
+        <span class="hint">Aujourd'hui : groupe D, coefficient 305, avec une prime de responsabilité de 24 points (170,25 € par mois). Les points d'ancienneté sont déjà compris dans le BP.</span>
         <div class="row">
           <span>Reclassement en groupe E</span>
           <span class="seg" role="radiogroup" aria-label="Reclassement de Gaëlle R.">
@@ -152,19 +152,10 @@ td.pos { color: var(--good); }
           </span>
         </div>
         <div class="row">
-          <label for="gr-act">Coefficient actuel total (points)</label>
-          <input type="number" id="gr-act" min="305" max="480" step="1" value="382">
-        </div>
-        <span class="hint">305 points de base du groupe D + 77 points d'ancienneté et d'expérience (note de synthèse), à vérifier sur le bulletin de paie.</span>
-        <div class="row">
-          <label for="gr-prime">Prime de responsabilité (€ par mois)</label>
-          <input type="number" id="gr-prime" min="0" max="500" step="0.01" value="170.25">
-        </div>
-        <div class="row">
           <label for="gr-coef">Coefficient visé en groupe E (points)</label>
-          <input type="number" id="gr-coef" min="325" max="480" step="1" value="402">
+          <input type="number" id="gr-coef" min="325" max="420" step="1" value="325">
         </div>
-        <input type="range" id="gr-coef-r" min="325" max="480" step="1" value="402" aria-label="Coefficient visé de Gaëlle R., curseur">
+        <input type="range" id="gr-coef-r" min="325" max="420" step="1" value="325" aria-label="Coefficient visé de Gaëlle R., curseur">
         <div class="row">
           <span>Prime intégrée au coefficient</span>
           <span class="seg" role="radiogroup" aria-label="Prime intégrée au coefficient">
@@ -265,11 +256,11 @@ td.pos { color: var(--good); }
 <script>
 (function () {
   var V2 = 6.84, MOIS = 8, TX = 0.35, PREV8 = 370, PREV_AN = 550;
-  var H_ATTRIB = 443.5, TARIF_ACTUEL = 35;
+  var H_ATTRIB = 443.5, TARIF_ACTUEL = 35, GR_ACT = 305, GR_PRIME_PTS = 24;
   var PRODUITS = 251400;
   var PPV = { non: 0, dec: 3600, jan: 3100 };
-  var BP = { gb: "oui", gbg: "H", gbCoef: 435, gr: "oui", grAct: 382, grPrime: 170.25, grCoef: 402, grp: "oui", ppv: "dec", ccM: 200, ccN: 6, tarif: 40, attrib: "oui", hRobin: 204 };
-  var NONE = { gb: "non", gbg: "H", gbCoef: 435, gr: "non", grAct: 382, grPrime: 170.25, grCoef: 402, grp: "oui", ppv: "non", ccM: 200, ccN: 6, tarif: 35, attrib: "non", hRobin: 204 };
+  var BP = { gb: "oui", gbg: "H", gbCoef: 435, gr: "oui", grCoef: 325, grp: "oui", ppv: "dec", ccM: 200, ccN: 6, tarif: 40, attrib: "oui", hRobin: 204 };
+  var NONE = { gb: "non", gbg: "H", gbCoef: 435, gr: "non", grCoef: 325, grp: "oui", ppv: "non", ccM: 200, ccN: 6, tarif: 35, attrib: "non", hRobin: 204 };
 
   var fmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
   function eur(x) { return fmt.format(Math.round(x / 10) * 10) + " €"; }
@@ -290,7 +281,7 @@ td.pos { color: var(--good); }
     }
     var gr = 0, grAn = 0;
     if (s.gr === "oui") {
-      var e = (s.grCoef - s.grAct) * V2 - (s.grp === "oui" ? s.grPrime : 0);
+      var e = ((s.grCoef - GR_ACT) - (s.grp === "oui" ? GR_PRIME_PTS : 0)) * V2;
       e = Math.max(0, e);
       gr = r100(e * MOIS * (1 + TX));
       grAn = r100(e * 12 * (1 + TX));
@@ -308,14 +299,14 @@ td.pos { color: var(--good); }
   function read() {
     return {
       gb: radio("gb"), gbg: radio("gbg"), gbCoef: num("gb-coef", 435),
-      gr: radio("gr"), grAct: num("gr-act", 382), grPrime: num("gr-prime", 0), grCoef: num("gr-coef", 402), grp: radio("grp"),
+      gr: radio("gr"), grCoef: num("gr-coef", 325), grp: radio("grp"),
       ppv: radio("ppv"), ccM: num("cc-m", 0), ccN: num("cc-n", 0),
       tarif: parseFloat(radio("tarif")), attrib: radio("attrib"), hRobin: num("h-robin", 0)
     };
   }
   function apply(s) {
     setRadio("gb", s.gb); setRadio("gbg", s.gbg); $("gb-coef").value = s.gbCoef; $("gb-coef-r").value = s.gbCoef;
-    setRadio("gr", s.gr); $("gr-act").value = s.grAct; $("gr-prime").value = s.grPrime; $("gr-coef").value = s.grCoef; $("gr-coef-r").value = s.grCoef; setRadio("grp", s.grp);
+    setRadio("gr", s.gr); $("gr-coef").value = s.grCoef; $("gr-coef-r").value = s.grCoef; setRadio("grp", s.grp);
     setRadio("ppv", s.ppv); $("cc-m").value = s.ccM; $("cc-n").value = s.ccN;
     setRadio("tarif", String(s.tarif)); setRadio("attrib", s.attrib); $("h-robin").value = s.hRobin;
     update();
@@ -389,14 +380,15 @@ td.pos { color: var(--good); }
     if (s.gb === "non") { chip.textContent = "Reste en groupe F"; chip.className = "chip ok"; }
     else if (s.gbCoef >= minG) { chip.textContent = "Conforme (min. " + minG + " pts)"; chip.className = "chip ok"; }
     else { chip.textContent = "Sous le minimum du groupe " + s.gbg + " (" + minG + " pts)"; chip.className = "chip ko"; }
-    var diffR = (s.grCoef - s.grAct) * V2;
-    $("gr-hint").textContent = s.gr === "non" ? "Pas de reclassement : groupe D et prime de 170,25 € maintenus."
-      : "Hausse de salaire brut : " + fmt.format(Math.round(diffR)) + " € par mois" + (s.grp === "oui" ? ", moins la prime supprimée (" + fmt.format(Math.round(s.grPrime)) + " €). Le salaire ne baisse pas : surcoût nul tant que la hausse ne dépasse pas la prime." : ", prime maintenue en plus.");
+    var pts = s.grCoef - GR_ACT;
+    var net = pts - (s.grp === "oui" ? GR_PRIME_PTS : 0);
+    $("gr-hint").textContent = s.gr === "non" ? "Pas de reclassement : groupe D, 305 points et prime de 24 points maintenus."
+      : "+" + pts + " points par rapport à 305" + (s.grp === "oui" ? ", moins la prime de 24 points supprimée : " + (net > 0 ? "+" + net + " points payés en plus." : "salaire maintenu, sans surcoût.") : ", prime de 24 points maintenue en plus.");
     var cc = $("cc-chip");
     if (s.ccM > 200) { cc.textContent = "Au-dessus du plafond"; cc.className = "chip ko"; } else { cc.textContent = "Sous le plafond"; cc.className = "chip ok"; }
-    var net = Math.round(3100 * (1 - 0.097 * 0.9825) / 10) * 10;
+    var netPpv = Math.round(3100 * (1 - 0.097 * 0.9825) / 10) * 10;
     $("ppv-hint").textContent = s.ppv === "dec" ? "3 600 € (Robin inclus), exonérés de CSG/CRDS et d'impôt : l'équipe touche 3 600 €."
-      : s.ppv === "jan" ? "3 100 € (sans Robin), soumis à la CSG/CRDS : l'équipe touche environ " + fmt.format(net) + " € avant impôt."
+      : s.ppv === "jan" ? "3 100 € (sans Robin), soumis à la CSG/CRDS : l'équipe touche environ " + fmt.format(netPpv) + " € avant impôt."
       : "Pas de PPV.";
 
     // tuiles
