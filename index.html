@@ -277,7 +277,7 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
       <h2>Résultat prévisionnel au 31/08/2027</h2>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Poste</th><th>Votre simulation</th><th>BP à valider</th><th>Écart</th></tr></thead>
+          <thead><tr><th>Poste</th><th>Votre simulation</th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -669,7 +669,7 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
       var d = a - b;
       var dCls = d === 0 ? "" : (isRes || r[3] === "total" && r[0].indexOf("produits") > -1) ? (d > 0 ? "pos" : "neg") : (d > 0 ? "neg" : "pos");
       var aCls = isRes ? (a < 0 ? "neg" : "pos") : "";
-      return '<tr class="' + r[3] + '"><td>' + r[0] + '</td><td class="' + aCls + '">' + eur(a) + '</td><td>' + eur(b) + '</td><td class="' + dCls + '">' + (d === 0 ? "–" : eurS(d)) + '</td></tr>';
+      return '<tr class="' + r[3] + '"><td>' + r[0] + '</td><td class="' + aCls + '">' + eur(a) + '</td></tr>';
     }).join("");
     $("tbody").innerHTML = html;
 
