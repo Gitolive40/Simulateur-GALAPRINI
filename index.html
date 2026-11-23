@@ -290,12 +290,12 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
   <section class="panel detail" aria-labelledby="t-detail">
     <h2 id="t-detail">Budget détaillé 2026-2027 par compte</h2>
     <div class="detail-head">
-      <p class="hint">Les montants de la colonne « Simulation » sont modifiables : cliquez sur un montant pour le changer, les totaux et le résultat se recalculent. Les lignes en italique sont calculées par les réglages (PPV, chèques cadeaux, reclassements). Les lignes modifiées sont surlignées. Colonne « BP à valider » : budget exporté de BasiCompta (résultat 0 €).</p>
+      <p class="hint">Les montants de la colonne « Simulation » sont modifiables : cliquez sur un montant pour le changer, les totaux et le résultat se recalculent. Les lignes en italique sont calculées par les réglages (PPV, chèques cadeaux, reclassements). Les lignes surlignées s'écartent du BP à valider (réglages ou saisie). Colonne « Réalisé N-1 » : compte de résultat 2025-2026 (BasiCompta, 23/11/2026), réparti sur les comptes du budget à l'aide de l'analytique ; l'écart compare la simulation au réalisé.</p>
       <button type="button" id="reset-man">Rétablir les montants du BP</button>
     </div>
     <div class="detail-grid">
-      <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><thead><tr><th>Charges</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-ch"></tbody></table></div>
-      <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><thead><tr><th>Produits</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-pr"></tbody></table></div>
+      <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><thead><tr><th>Charges</th><th>Simulation</th><th>Réalisé N-1</th><th>Écart</th></tr></thead><tbody id="dt-ch"></tbody></table></div>
+      <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><thead><tr><th>Produits</th><th>Simulation</th><th>Réalisé N-1</th><th>Écart</th></tr></thead><tbody id="dt-pr"></tbody></table></div>
     </div>
     <div class="detail-grid totals">
       <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><tbody id="dt-ch-tot"></tbody></table></div>
@@ -465,51 +465,56 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
   var LINES = {
     ch: [
       ["60 – Achats", [
-        { k: "c604p", l: "604 – Prestataires extérieurs (cours, scolaires, spectacles, stages)", b: 22622.5, dyn: function (c) { return c.rempl + c.attrib; } },
-        { k: "c604m", l: "604 – Ménage", b: 5000 },
-        { k: "c606a", l: "606 – Achats non stockés de matières et fournitures", b: 500 },
-        { k: "c606e", l: "606 – Fournitures non stockables (eau, énergie)", b: 1000 },
-        { k: "c606p", l: "606 – Fournitures d'entretien et petit équipement", b: 2000 },
-        { k: "c606f", l: "606 – Autres fournitures", b: 5000 }]],
+        { k: "c604p", n1: 40400, l: "604 – Prestataires extérieurs (cours, scolaires, spectacles, stages)", b: 22622.5, dyn: function (c) { return c.rempl + c.attrib; } },
+        { k: "c604m", n1: 4774.96, l: "604 – Ménage", b: 5000 },
+        { k: "c606a", n1: 341.19, l: "606 – Achats non stockés de matières et fournitures", b: 500 },
+        { k: "c607", n1: 1316.92, l: "607 – Achats de marchandises (buvette)", b: 0 },
+        { k: "c606e", n1: 672.92, l: "606 – Fournitures non stockables (eau, énergie)", b: 1000 },
+        { k: "c606p", n1: 1997.83, l: "606 – Fournitures d'entretien et petit équipement", b: 2000 },
+        { k: "c606f", n1: 4088.81, l: "606 – Autres fournitures", b: 5000 }]],
       ["61 – Services extérieurs", [
-        { k: "c613", l: "613 – Locations", b: 7000 },
-        { k: "c615", l: "615 – Entretien et réparation", b: 1000 },
-        { k: "c616", l: "616 – Assurance", b: 2000 }]],
+        { k: "c613", n1: 6261.15, l: "613 – Locations", b: 7000 },
+        { k: "c615", n1: 96.15, l: "615 – Entretien et réparation", b: 1000 },
+        { k: "c616", n1: 2096.61, l: "616 – Assurance", b: 2000 }]],
       ["62 – Autres services extérieurs", [
-        { k: "c622", l: "622 – Honoraires", b: 500 },
-        { k: "c623", l: "623 – Publicité, publication", b: 500 },
-        { k: "c625", l: "625 – Déplacements, missions", b: 4000 },
-        { k: "c626", l: "626 – Frais postaux et télécommunications", b: 650 },
-        { k: "c627", l: "627 – Services bancaires", b: 350 }]],
+        { k: "c622", n1: 925, l: "622 – Honoraires", b: 500 },
+        { k: "c623", n1: 475.99, l: "623 – Publicité, publication", b: 500 },
+        { k: "c625", n1: 1099.94, l: "625 – Déplacements, missions", b: 4000 },
+        { k: "c626", n1: 641.46, l: "626 – Frais postaux et télécommunications", b: 650 },
+        { k: "c627", n1: 319.32, l: "627 – Services bancaires", b: 350 }]],
       ["64 – Charges de personnel", [
-        { k: "c641b", l: "641 – Rémunérations de base", b: 88200 },
+        { k: "c641b", n1: 92360.96, l: "641 – Rémunérations de base", b: 88200 },
         { k: "c641p", l: "641 – Prime de précarité", b: 1000 },
         { k: "c641r", l: "641 – Indemnité de rupture conventionnelle (Robin)", b: 600 },
         { k: "c641v", l: "641 – PPV", b: 0, calc: true, dyn: function (c) { return c.ppv; } },
         { k: "c641c", l: "641 – Chèques cadeaux", b: 0, calc: true, dyn: function (c) { return c.cc; } },
         { k: "c641gb", l: "641 – Reclassement de Gaëlle B. (salaire brut)", b: 0, calc: true, dyn: function (c) { return c.gbBrut; } },
         { k: "c641gr", l: "641 – Reclassement de Gaëlle R. (salaire brut)", b: 0, calc: true, dyn: function (c) { return c.grBrut; } },
-        { k: "c645b", l: "645 – Charges sociales de base", b: 63000 - PREV8 },
+        { k: "c645b", n1: 67212.17, l: "645 – Charges sociales de base", b: 63000 - PREV8 },
         { k: "c645r", l: "645 – Charges sur reclassements", b: 0, calc: true, dyn: function (c) { return c.gbCh + c.grCh; } },
         { k: "c645p", l: "645 – Prévoyance cadre", b: 0, calc: true, dyn: function (c) { return c.gbPrev; } },
-        { k: "c647", l: "647 – Titres-restaurant", b: 7000 },
-        { k: "c648", l: "648 – Formation", b: 3400 }]],
+        { k: "c647", n1: 7998.2, l: "647 – Titres-restaurant, frais de formation et déplacements", b: 7000 },
+        { k: "c648", n1: 1716, l: "63/648 – Contribution à la formation", b: 3400 }]],
       ["65 – Autres charges de gestion courante", [
-        { k: "c65", l: "65 – Licences fédérales, cotisations", b: 12000 }]],
+        { k: "c65", n1: 12876.1, l: "65 – Licences fédérales, cotisations", b: 12000 }]],
       ["68 – Dotations aux amortissements", [
-        { k: "c681", l: "681 – Dotations aux amortissements", b: 4500 }]]
+        { k: "c681", n1: 4070.62, l: "681 – Dotations aux amortissements", b: 4500 }]]
     ],
     pr: [
       ["70 – Ventes et prestations", [
-        { k: "p706s", l: "706 – Scolaires", b: 24000 }, { k: "p706c", l: "706 – Crèche", b: 1400 }, { k: "p706h", l: "706 – Hôpital", b: 3500 },
-        { k: "p706st", l: "706 – Stages", b: 45000 }, { k: "p706p", l: "706 – Prestations", b: 10000 }, { k: "p706b", l: "706 – Billetterie", b: 12000 },
-        { k: "p707", l: "707 – Vente de marchandises", b: 8000 }, { k: "p708", l: "708 – Produits des activités annexes", b: 500 }]],
+        { k: "p706s", n1: 11955, l: "706 – Scolaires", b: 24000 }, { k: "p706c", l: "706 – Crèche", b: 1400 }, { k: "p706h", n1: 3100, l: "706 – Hôpital", b: 3500 },
+        { k: "p706st", n1: 41711.18, l: "706 – Stages", b: 45000 }, { k: "p706p", n1: 20849, l: "706 – Prestations", b: 10000 }, { k: "p706b", n1: 14297.17, l: "706 – Billetterie", b: 12000 },
+        { k: "p707", n1: 7422.34, l: "707 – Vente de marchandises", b: 8000 }, { k: "p708", n1: 318.29, l: "708 – Produits des activités annexes", b: 500 }]],
       ["74 – Subventions d'exploitation", [
-        { k: "p74c", l: "74 – Commune", b: 4000 }, { k: "p74cc", l: "74 – Communauté de communes", b: 10000 }, { k: "p74d", l: "74 – Département", b: 0 }]],
+        { k: "p754", n1: 210, l: "754 – Mécénat, dons", b: 0 },
+        { k: "p74c", n1: 4000, l: "74 – Commune", b: 4000 }, { k: "p74cc", n1: 10000, l: "74 – Communauté de communes", b: 10000 }, { k: "p74d", l: "74 – Département", b: 0 }]],
       ["75 – Autres produits de gestion courante", [
-        { k: "p758", l: "758 – Participations des adhérents", b: 120000 }, { k: "p756", l: "756 – Licences remboursées par les adhérents", b: 10000 }]],
+        { k: "p758", n1: 130100.4, l: "758 – Participations des adhérents", b: 120000 }, { k: "p756", l: "756 – Licences remboursées par les adhérents", b: 10000 },
+        { k: "p756c", n1: 234.9, l: "756 – Cotisations des adhérents", b: 0 }]],
       ["76 – Produits financiers", [
-        { k: "p76", l: "76 – Intérêts des placements", b: 3000 }]]
+        { k: "p76", n1: 3289.11, l: "76 – Intérêts des placements", b: 3000 }]],
+      ["77 – Produits exceptionnels", [
+        { k: "p77", n1: 40.14, l: "77 – Produits exceptionnels", b: 0 }]]
     ]
   };
   // montants modifiés à la main (mémorisés dans ce navigateur)
@@ -519,6 +524,8 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
   function baseOf(l) { return (OVR[l.k] !== undefined && !l.calc) ? OVR[l.k] : l.b; }
   function valOf(l, c) { return baseOf(l) + (l.dyn ? l.dyn(c) : 0); }
   function bpOf(l) { return l.b + (l.dyn ? l.dyn(cBP) : 0); }
+  function n1Of(l) { return l.n1 || 0; }
+  var N1_RES = -4214.77;
   function adj(side) {
     var t = 0;
     LINES[side].forEach(function (g) { g[1].forEach(function (l) { t += baseOf(l) - l.b; }); });
@@ -557,17 +564,18 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
     LINES[side].forEach(function (g, gi) {
       var gS = 0, gB = 0;
       g[1].forEach(function (l) {
-        var a = valOf(l, c), b = bpOf(l); gS += a; gB += b;
+        var a = valOf(l, c), b = n1Of(l); gS += a; gB += b;
         var d = r10(a) - r10(b);
+        var mod = r10(a) !== r10(bpOf(l));
         if (l.calc) $("v-" + l.k).textContent = eur(a);
         else {
           var inp = $("in-" + l.k);
           if (document.activeElement !== inp) inp.value = Math.round(a);
           inp.className = "amt" + (OVR[l.k] !== undefined ? " edited" : "");
         }
-        $("b-" + l.k).textContent = eur(b);
+        $("b-" + l.k).textContent = b ? eur(b) : "–";
         var de = $("d-" + l.k); de.className = dCls(d, invert); de.textContent = d === 0 ? "–" : eurS(d);
-        $("tr-" + l.k).className = "line" + (d !== 0 ? " changed" : "");
+        $("tr-" + l.k).className = "line" + (mod ? " changed" : "");
       });
       tS += gS; tB += gB;
       var gd = r10(gS) - r10(gB);
@@ -584,7 +592,7 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
     var tp = renderTable("dt-pr", "pr", c, "Total des produits", true);
     var r = r10(tp - tc);
     var bar = $("dt-res"); bar.className = "result-bar " + (r < 0 ? "neg" : "pos");
-    bar.innerHTML = '<span>Résultat prévisionnel au 31/08/2027</span><span><span class="big">' + eur(r) + '</span></span>';
+    bar.innerHTML = '<span>Résultat prévisionnel au 31/08/2027</span><span><span class="meta">Réalisé 2025-2026 : ' + fmt.format(Math.round(N1_RES)) + ' € · </span><span class="big">' + eur(r) + '</span></span>';
   }
 
   function renderGrille(s) {
