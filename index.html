@@ -143,7 +143,9 @@ table.grille tr.hl td { background: var(--accent-soft); }
 .ppv-list .row { flex-wrap: nowrap; }
 .ppv-list input[type="number"] { width: 90px; }
 .ppv-list .row.off span { color: var(--muted); text-decoration: line-through; }
-.ppv-list .row.tot { border-top: 1px solid var(--line); padding-top: 6px; font-weight: 600; }
+.ppv-list .row.tot { font-weight: 600; }
+.ppv-det summary { cursor: pointer; font-size: 13.5px; color: var(--accent); }
+.ppv-det[open] summary { margin-bottom: 8px; }
 table.dt input.amt { width: 100%; padding: 3px 6px; font-size: 14px; text-align: right; background: var(--surface); }
 table.dt input.amt.edited { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
 table.dt td.calc { color: var(--muted); font-style: italic; }
@@ -402,9 +404,10 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
   var CHARGES_HORS = PRODUITS - BASE;
 
   // liste PPV par salarié
-  $("ppv-list").innerHTML = PPV_SAL.map(function (p) {
+  $("ppv-list").innerHTML = '<div class="row tot"><span>Total PPV</span><span id="ppv-tot">0 €</span></div>'
+    + '<details class="ppv-det"><summary>Montants par salarié</summary><div class="ppv-list">' + PPV_SAL.map(function (p) {
     return '<div class="row" id="ppv-row-' + p.k + '"><label for="ppv-' + p.k + '">' + p.n + '</label><input type="number" id="ppv-' + p.k + '" min="0" max="3000" step="50" value="' + p.v + '"></div>';
-  }).join("") + '<div class="row tot"><span>Total PPV</span><span id="ppv-tot">0 €</span></div>';
+  }).join("") + '</div></details>';
   function readPpv() { var o = {}; PPV_SAL.forEach(function (p) { var v = parseFloat($("ppv-" + p.k).value); o[p.k] = isNaN(v) ? 0 : Math.max(0, v); }); return o; }
 
   function read() {
