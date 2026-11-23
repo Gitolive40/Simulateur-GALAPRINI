@@ -139,6 +139,15 @@ table.grille .tag.now { background: transparent; border-color: var(--tc); color:
 table.grille .tag.target { background: var(--tc); border-color: var(--tc); color: #fff; }
 table.grille .tag.option { background: transparent; border: 1.5px dashed var(--tc); color: var(--tc); }
 table.grille tr.hl td { background: var(--accent-soft); }
+.ppv-list { display: grid; gap: 6px; }
+.ppv-list .row { flex-wrap: nowrap; }
+.ppv-list input[type="number"] { width: 90px; }
+.ppv-list .row.off span { color: var(--muted); text-decoration: line-through; }
+.ppv-list .row.tot { border-top: 1px solid var(--line); padding-top: 6px; font-weight: 600; }
+table.dt input.amt { width: 100%; padding: 3px 6px; font-size: 14px; text-align: right; background: var(--surface); }
+table.dt input.amt.edited { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+table.dt td.calc { color: var(--muted); font-style: italic; }
+.detail-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 @media (prefers-reduced-motion: no-preference) { svg rect { transition: y .25s, height .25s; } }
 </style>
 </head>
@@ -223,6 +232,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
           <input type="radio" name="ppv" id="ppv-dec" value="dec" checked><label for="ppv-dec">Décembre 2026</label>
           <input type="radio" name="ppv" id="ppv-jan" value="jan"><label for="ppv-jan">Janvier 2027</label>
         </span>
+        <div class="ppv-list" id="ppv-list"></div>
         <span class="hint" id="ppv-hint"></span>
       </fieldset>
 
@@ -300,7 +310,10 @@ table.grille tr.hl td { background: var(--accent-soft); }
   </section>
   <section class="panel detail" aria-labelledby="t-detail">
     <h2 id="t-detail">Budget détaillé 2026-2027 par compte</h2>
-    <p class="hint">Les lignes modifiées par vos choix sont surlignées. Colonne « BP à valider » : budget exporté de BasiCompta (résultat 0 €).</p>
+    <div class="detail-head">
+      <p class="hint">Les montants de la colonne « Simulation » sont modifiables : cliquez sur un montant pour le changer, les totaux et le résultat se recalculent. Les lignes en italique sont calculées par les réglages (PPV, chèques cadeaux, reclassements). Les lignes modifiées sont surlignées. Colonne « BP à valider » : budget exporté de BasiCompta (résultat 0 €).</p>
+      <button type="button" id="reset-man">Rétablir les montants du BP</button>
+    </div>
     <div class="detail-grid">
       <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><thead><tr><th>Charges</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-ch"></tbody></table></div>
       <div class="table-wrap"><table class="dt"><colgroup><col><col class="cn"><col class="cn"><col class="cn"></colgroup><thead><tr><th>Produits</th><th>Simulation</th><th>BP à valider</th><th>Écart</th></tr></thead><tbody id="dt-pr"></tbody></table></div>
@@ -336,9 +349,21 @@ table.grille tr.hl td { background: var(--accent-soft); }
   var V2 = 6.84, MOIS = 8, TX = 0.35, PREV8 = 370, PREV_AN = 550;
   var H_ATTRIB = 443.5, TARIF_ACTUEL = 35, GR_ACT = 305, GR_PRIME_PTS = 24;
   var PRODUITS = 251400;
-  var PPV = { non: 0, dec: 3600, jan: 3100 };
-  var BP = { gb: "oui", gbg: "H", gbCoef: 435, gr: "oui", grg: "E", grCoef: 325, grp: "oui", ppv: "dec", ccM: 200, ccN: 6, tarif: 40, attrib: "oui", hRobin: 204 };
-  var NONE = { gb: "non", gbg: "H", gbCoef: 435, gr: "non", grg: "E", grCoef: 325, grp: "oui", ppv: "non", ccM: 200, ccN: 6, tarif: 35, attrib: "non", hRobin: 204 };
+  var PPV_SAL = [
+    { k: "gb", n: "Gaëlle B", v: 1000 },
+    { k: "gr", n: "Gaëlle R", v: 1000 },
+    { k: "david", n: "David", v: 500 },
+    { k: "henry", n: "Henry", v: 500 },
+    { k: "robin", n: "Robin (sortie au 31/12/2026)", v: 500, sortant: true },
+    { k: "fanny", n: "Fanny", v: 100 }
+  ];
+  function ppvDefaults() { var o = {}; PPV_SAL.forEach(function (p) { o[p.k] = p.v; }); return o; }
+  function ppvTotal(when, amts) {
+    if (when === "non") return 0;
+    return PPV_SAL.reduce(function (t, p) { return t + ((when === "jan" && p.sortant) ? 0 : (amts[p.k] || 0)); }, 0);
+  }
+  var BP = { gb: "oui", gbg: "H", gbCoef: 435, gr: "oui", grg: "E", grCoef: 325, grp: "oui", ppv: "dec", ppvA: ppvDefaults(), ccM: 200, ccN: 6, tarif: 40, attrib: "oui", hRobin: 204 };
+  var NONE = { gb: "non", gbg: "H", gbCoef: 435, gr: "non", grg: "E", grCoef: 325, grp: "oui", ppv: "non", ppvA: ppvDefaults(), ccM: 200, ccN: 6, tarif: 35, attrib: "non", hRobin: 204 };
 
   var fmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
   function eur(x) { return fmt.format(Math.round(x / 10) * 10) + " €"; }
@@ -368,7 +393,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
     }
     var rempl = s.hRobin * s.tarif;
     var attrib = (s.attrib === "oui" && s.tarif > TARIF_ACTUEL) ? H_ATTRIB * (s.tarif - TARIF_ACTUEL) : 0;
-    return { gb: gb, gr: gr, ppv: PPV[s.ppv], cc: s.ccM * s.ccN, rempl: rempl, rempl35: s.hRobin * TARIF_ACTUEL, attrib: attrib, gbAn: gbAn, grAn: grAn, gbBrut: gbBrut, gbCh: gbCh, gbPrev: gbPrev, grBrut: grBrut, grCh: grCh };
+    return { gb: gb, gr: gr, ppv: ppvTotal(s.ppv, s.ppvA), cc: s.ccM * s.ccN, rempl: rempl, rempl35: s.hRobin * TARIF_ACTUEL, attrib: attrib, gbAn: gbAn, grAn: grAn, gbBrut: gbBrut, gbCh: gbCh, gbPrev: gbPrev, grBrut: grBrut, grCh: grCh };
   }
   function total(c) { return c.gb + c.gr + c.ppv + c.cc + c.rempl + c.attrib; }
 
@@ -376,23 +401,29 @@ table.grille tr.hl td { background: var(--accent-soft); }
   var BASE = total(cBP); // prévisionnel avec le départ de Robin : le BP à valider (0 €) + coût des mesures qu'il contient
   var CHARGES_HORS = PRODUITS - BASE;
 
+  // liste PPV par salarié
+  $("ppv-list").innerHTML = PPV_SAL.map(function (p) {
+    return '<div class="row" id="ppv-row-' + p.k + '"><label for="ppv-' + p.k + '">' + p.n + '</label><input type="number" id="ppv-' + p.k + '" min="0" max="3000" step="50" value="' + p.v + '"></div>';
+  }).join("") + '<div class="row tot"><span>Total PPV</span><span id="ppv-tot">0 €</span></div>';
+  function readPpv() { var o = {}; PPV_SAL.forEach(function (p) { var v = parseFloat($("ppv-" + p.k).value); o[p.k] = isNaN(v) ? 0 : Math.max(0, v); }); return o; }
+
   function read() {
     return {
       gb: radio("gb"), gbg: radio("gbg"), gbCoef: num("gb-coef", 435),
       gr: radio("gr"), grg: radio("grg"), grCoef: num("gr-coef", 325), grp: radio("grp"),
-      ppv: radio("ppv"), ccM: num("cc-m", 0), ccN: num("cc-n", 0),
+      ppv: radio("ppv"), ppvA: readPpv(), ccM: num("cc-m", 0), ccN: num("cc-n", 0),
       tarif: parseFloat(radio("tarif")), attrib: radio("attrib"), hRobin: num("h-robin", 0)
     };
   }
   function apply(s) {
     setRadio("gb", s.gb); setRadio("gbg", s.gbg); $("gb-coef").value = s.gbCoef; $("gb-coef-r").value = s.gbCoef;
     setRadio("gr", s.gr); setRadio("grg", s.grg); $("gr-coef").value = s.grCoef; $("gr-coef-r").value = s.grCoef; setRadio("grp", s.grp);
-    setRadio("ppv", s.ppv); $("cc-m").value = s.ccM; $("cc-n").value = s.ccN;
+    setRadio("ppv", s.ppv); PPV_SAL.forEach(function (p) { $("ppv-" + p.k).value = s.ppvA[p.k]; }); $("cc-m").value = s.ccM; $("cc-n").value = s.ccN;
     setRadio("tarif", String(s.tarif)); setRadio("attrib", s.attrib); $("h-robin").value = s.hRobin;
     update();
   }
 
-  function drawChart(c, res) {
+  function drawChart(c, res, ADJ) {
     var svg = $("chart");
     var W = 760, H = 320, L = 64, R = 16, T = 24, B = 64;
     var steps = [
@@ -404,6 +435,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
       { k: "Chèques cadeaux", v: -c.cc },
       { k: "Résultat au|31/08/2027", v: res, type: "end" }
     ];
+    if (Math.abs(ADJ) >= 1) steps.splice(steps.length - 1, 0, { k: "Montants|modifiés", v: ADJ, col: "var(--bar-base)" });
     var run = 0, bars = [], lo = 0, hi = 0;
     steps.forEach(function (s) {
       var a, b;
@@ -449,84 +481,128 @@ table.grille tr.hl td { background: var(--accent-soft); }
     svg.innerHTML = out.join("");
   }
 
-  function detailData(c) {
-    var ch = [
+  // Budget détaillé : b = montant de base (modifiable), dyn = part calculée par les réglages, calc = ligne entièrement calculée
+  var LINES = {
+    ch: [
       ["60 – Achats", [
-        ["604 – Prestataires extérieurs (cours, scolaires, spectacles, stages)", 22622.5 + c.rempl + c.attrib],
-        ["604 – Ménage", 5000],
-        ["606 – Achats non stockés de matières et fournitures", 500],
-        ["606 – Fournitures non stockables (eau, énergie)", 1000],
-        ["606 – Fournitures d'entretien et petit équipement", 2000],
-        ["606 – Autres fournitures", 5000]]],
+        { k: "c604p", l: "604 – Prestataires extérieurs (cours, scolaires, spectacles, stages)", b: 22622.5, dyn: function (c) { return c.rempl + c.attrib; } },
+        { k: "c604m", l: "604 – Ménage", b: 5000 },
+        { k: "c606a", l: "606 – Achats non stockés de matières et fournitures", b: 500 },
+        { k: "c606e", l: "606 – Fournitures non stockables (eau, énergie)", b: 1000 },
+        { k: "c606p", l: "606 – Fournitures d'entretien et petit équipement", b: 2000 },
+        { k: "c606f", l: "606 – Autres fournitures", b: 5000 }]],
       ["61 – Services extérieurs", [
-        ["613 – Locations", 7000],
-        ["615 – Entretien et réparation", 1000],
-        ["616 – Assurance", 2000]]],
+        { k: "c613", l: "613 – Locations", b: 7000 },
+        { k: "c615", l: "615 – Entretien et réparation", b: 1000 },
+        { k: "c616", l: "616 – Assurance", b: 2000 }]],
       ["62 – Autres services extérieurs", [
-        ["622 – Honoraires", 500],
-        ["623 – Publicité, publication", 500],
-        ["625 – Déplacements, missions", 4000],
-        ["626 – Frais postaux et télécommunications", 650],
-        ["627 – Services bancaires", 350]]],
+        { k: "c622", l: "622 – Honoraires", b: 500 },
+        { k: "c623", l: "623 – Publicité, publication", b: 500 },
+        { k: "c625", l: "625 – Déplacements, missions", b: 4000 },
+        { k: "c626", l: "626 – Frais postaux et télécommunications", b: 650 },
+        { k: "c627", l: "627 – Services bancaires", b: 350 }]],
       ["64 – Charges de personnel", [
-        ["641 – Rémunérations de base", 88200],
-        ["641 – Prime de précarité", 1000],
-        ["641 – Indemnité de rupture conventionnelle (Robin)", 600],
-        ["641 – PPV", c.ppv],
-        ["641 – Chèques cadeaux", c.cc],
-        ["641 – Reclassement de Gaëlle B. (salaire brut)", c.gbBrut],
-        ["641 – Reclassement de Gaëlle R. (salaire brut)", c.grBrut],
-        ["645 – Charges sociales de base", 63000 - PREV8],
-        ["645 – Charges sur reclassements", c.gbCh + c.grCh],
-        ["645 – Prévoyance cadre", c.gbPrev],
-        ["647 – Titres-restaurant", 7000],
-        ["648 – Formation", 3400]]],
+        { k: "c641b", l: "641 – Rémunérations de base", b: 88200 },
+        { k: "c641p", l: "641 – Prime de précarité", b: 1000 },
+        { k: "c641r", l: "641 – Indemnité de rupture conventionnelle (Robin)", b: 600 },
+        { k: "c641v", l: "641 – PPV", b: 0, calc: true, dyn: function (c) { return c.ppv; } },
+        { k: "c641c", l: "641 – Chèques cadeaux", b: 0, calc: true, dyn: function (c) { return c.cc; } },
+        { k: "c641gb", l: "641 – Reclassement de Gaëlle B. (salaire brut)", b: 0, calc: true, dyn: function (c) { return c.gbBrut; } },
+        { k: "c641gr", l: "641 – Reclassement de Gaëlle R. (salaire brut)", b: 0, calc: true, dyn: function (c) { return c.grBrut; } },
+        { k: "c645b", l: "645 – Charges sociales de base", b: 63000 - PREV8 },
+        { k: "c645r", l: "645 – Charges sur reclassements", b: 0, calc: true, dyn: function (c) { return c.gbCh + c.grCh; } },
+        { k: "c645p", l: "645 – Prévoyance cadre", b: 0, calc: true, dyn: function (c) { return c.gbPrev; } },
+        { k: "c647", l: "647 – Titres-restaurant", b: 7000 },
+        { k: "c648", l: "648 – Formation", b: 3400 }]],
       ["65 – Autres charges de gestion courante", [
-        ["65 – Licences fédérales, cotisations", 12000]]],
+        { k: "c65", l: "65 – Licences fédérales, cotisations", b: 12000 }]],
       ["68 – Dotations aux amortissements", [
-        ["681 – Dotations aux amortissements", 4500]]]
-    ];
-    var pr = [
+        { k: "c681", l: "681 – Dotations aux amortissements", b: 4500 }]]
+    ],
+    pr: [
       ["70 – Ventes et prestations", [
-        ["706 – Scolaires", 24000], ["706 – Crèche", 1400], ["706 – Hôpital", 3500],
-        ["706 – Stages", 45000], ["706 – Prestations", 10000], ["706 – Billetterie", 12000],
-        ["707 – Vente de marchandises", 8000], ["708 – Produits des activités annexes", 500]]],
+        { k: "p706s", l: "706 – Scolaires", b: 24000 }, { k: "p706c", l: "706 – Crèche", b: 1400 }, { k: "p706h", l: "706 – Hôpital", b: 3500 },
+        { k: "p706st", l: "706 – Stages", b: 45000 }, { k: "p706p", l: "706 – Prestations", b: 10000 }, { k: "p706b", l: "706 – Billetterie", b: 12000 },
+        { k: "p707", l: "707 – Vente de marchandises", b: 8000 }, { k: "p708", l: "708 – Produits des activités annexes", b: 500 }]],
       ["74 – Subventions d'exploitation", [
-        ["74 – Commune", 4000], ["74 – Communauté de communes", 10000], ["74 – Département", 0]]],
+        { k: "p74c", l: "74 – Commune", b: 4000 }, { k: "p74cc", l: "74 – Communauté de communes", b: 10000 }, { k: "p74d", l: "74 – Département", b: 0 }]],
       ["75 – Autres produits de gestion courante", [
-        ["758 – Participations des adhérents", 120000], ["756 – Licences remboursées par les adhérents", 10000]]],
+        { k: "p758", l: "758 – Participations des adhérents", b: 120000 }, { k: "p756", l: "756 – Licences remboursées par les adhérents", b: 10000 }]],
       ["76 – Produits financiers", [
-        ["76 – Intérêts des placements", 3000]]]
-    ];
-    return { ch: ch, pr: pr };
+        { k: "p76", l: "76 – Intérêts des placements", b: 3000 }]]
+    ]
+  };
+  // montants modifiés à la main (mémorisés dans ce navigateur)
+  var OVR = {};
+  try { OVR = JSON.parse(localStorage.getItem("galaprini-bp-ovr") || "{}") || {}; } catch (e) { OVR = {}; }
+  function saveOvr() { try { localStorage.setItem("galaprini-bp-ovr", JSON.stringify(OVR)); } catch (e) {} }
+  function baseOf(l) { return (OVR[l.k] !== undefined && !l.calc) ? OVR[l.k] : l.b; }
+  function valOf(l, c) { return baseOf(l) + (l.dyn ? l.dyn(c) : 0); }
+  function bpOf(l) { return l.b + (l.dyn ? l.dyn(cBP) : 0); }
+  function adj(side) {
+    var t = 0;
+    LINES[side].forEach(function (g) { g[1].forEach(function (l) { t += baseOf(l) - l.b; }); });
+    return t;
   }
-  var DBP = detailData(cBP);
-  function renderTable(id, sim, bp, totalLabel, invert) {
-    var html = "", tS = 0, tB = 0;
-    sim.forEach(function (g, gi) {
-      var gS = 0, gB = 0, lines = "";
-      g[1].forEach(function (l, li) {
-        var a = l[1], b = bp[gi][1][li][1]; gS += a; gB += b;
-        var d = Math.round(a / 10) * 10 - Math.round(b / 10) * 10;
-        var cls = d === 0 ? "" : (invert ? (d > 0 ? "pos" : "neg") : (d > 0 ? "neg" : "pos"));
-        lines += '<tr class="line' + (d !== 0 ? " changed" : "") + '"><td>' + l[0] + '</td><td>' + eur(a) + '</td><td>' + eur(b) + '</td><td class="' + cls + '">' + (d === 0 ? "–" : eurS(d)) + '</td></tr>';
+  var lastC = null;
+
+  function buildTable(id, side) {
+    var html = "";
+    LINES[side].forEach(function (g, gi) {
+      html += '<tr class="grp"><td>' + g[0] + '</td><td id="' + id + '-g' + gi + '-s"></td><td id="' + id + '-g' + gi + '-b"></td><td id="' + id + '-g' + gi + '-d"></td></tr>';
+      g[1].forEach(function (l) {
+        var cell = l.calc ? '<td class="calc" id="v-' + l.k + '"></td>'
+          : '<td><input type="number" class="amt" id="in-' + l.k + '" step="10" aria-label="' + l.l.replace(/"/g, "") + '"></td>';
+        html += '<tr class="line" id="tr-' + l.k + '"><td>' + l.l + '</td>' + cell + '<td id="b-' + l.k + '"></td><td id="d-' + l.k + '"></td></tr>';
+      });
+    });
+    $(id).innerHTML = html;
+    LINES[side].forEach(function (g) {
+      g[1].forEach(function (l) {
+        if (l.calc) return;
+        $("in-" + l.k).addEventListener("input", function () {
+          var v = parseFloat(this.value);
+          if (isNaN(v)) return;
+          var dyn = l.dyn && lastC ? l.dyn(lastC) : 0;
+          var b = v - dyn;
+          if (Math.abs(b - l.b) < 0.005) delete OVR[l.k]; else OVR[l.k] = b;
+          saveOvr(); update();
+        });
+      });
+    });
+  }
+  function dCls(d, invert) { return d === 0 ? "" : (invert ? (d > 0 ? "pos" : "neg") : (d > 0 ? "neg" : "pos")); }
+  function renderTable(id, side, c, totalLabel, invert) {
+    var tS = 0, tB = 0;
+    LINES[side].forEach(function (g, gi) {
+      var gS = 0, gB = 0;
+      g[1].forEach(function (l) {
+        var a = valOf(l, c), b = bpOf(l); gS += a; gB += b;
+        var d = r10(a) - r10(b);
+        if (l.calc) $("v-" + l.k).textContent = eur(a);
+        else {
+          var inp = $("in-" + l.k);
+          if (document.activeElement !== inp) inp.value = Math.round(a);
+          inp.className = "amt" + (OVR[l.k] !== undefined ? " edited" : "");
+        }
+        $("b-" + l.k).textContent = eur(b);
+        var de = $("d-" + l.k); de.className = dCls(d, invert); de.textContent = d === 0 ? "–" : eurS(d);
+        $("tr-" + l.k).className = "line" + (d !== 0 ? " changed" : "");
       });
       tS += gS; tB += gB;
-      var gd = Math.round(gS / 10) * 10 - Math.round(gB / 10) * 10;
-      var gcls = gd === 0 ? "" : (invert ? (gd > 0 ? "pos" : "neg") : (gd > 0 ? "neg" : "pos"));
-      html += '<tr class="grp"><td>' + g[0] + '</td><td>' + eur(gS) + '</td><td>' + eur(gB) + '</td><td class="' + gcls + '">' + (gd === 0 ? "–" : eurS(gd)) + '</td></tr>' + lines;
+      var gd = r10(gS) - r10(gB);
+      $(id + "-g" + gi + "-s").textContent = eur(gS);
+      $(id + "-g" + gi + "-b").textContent = eur(gB);
+      var gde = $(id + "-g" + gi + "-d"); gde.className = dCls(gd, invert); gde.textContent = gd === 0 ? "–" : eurS(gd);
     });
-    var td = Math.round(tS / 10) * 10 - Math.round(tB / 10) * 10;
-    var tcls = td === 0 ? "" : (invert ? (td > 0 ? "pos" : "neg") : (td > 0 ? "neg" : "pos"));
-    $(id).innerHTML = html;
-    $(id + "-tot").innerHTML = '<tr><td>' + totalLabel + '</td><td>' + eur(tS) + '</td><td>' + eur(tB) + '</td><td class="' + tcls + '">' + (td === 0 ? "–" : eurS(td)) + '</td></tr>';
+    var td = r10(tS) - r10(tB);
+    $(id + "-tot").innerHTML = '<tr><td>' + totalLabel + '</td><td>' + eur(tS) + '</td><td>' + eur(tB) + '</td><td class="' + dCls(td, invert) + '">' + (td === 0 ? "–" : eurS(td)) + '</td></tr>';
     return tS;
   }
-  function renderDetail(c, res) {
-    var D = detailData(c);
-    var tc = renderTable("dt-ch", D.ch, DBP.ch, "Total des charges", false);
-    var tp = renderTable("dt-pr", D.pr, DBP.pr, "Total des produits", true);
-    var r = Math.round((tp - tc) / 10) * 10;
+  function renderDetail(c) {
+    var tc = renderTable("dt-ch", "ch", c, "Total des charges", false);
+    var tp = renderTable("dt-pr", "pr", c, "Total des produits", true);
+    var r = r10(tp - tc);
     var bar = $("dt-res"); bar.className = "result-bar " + (r < 0 ? "neg" : "pos");
     bar.innerHTML = '<span>Résultat prévisionnel au 31/08/2027</span><span><span class="big">' + eur(r) + '</span></span>';
   }
@@ -546,8 +622,10 @@ table.grille tr.hl td { background: var(--accent-soft); }
     // synchro curseurs / champs
     var s = read();
     var c = costs(s);
+    lastC = c;
     var cost = total(c);
-    var res = r10(BASE - cost);
+    var adjP = adj("pr"), adjC = adj("ch"), ADJ = adjP - adjC;
+    var res = r10(BASE - cost + ADJ);
     var resBP = r10(BASE - total(cBP));
 
     // contrôles
@@ -567,9 +645,15 @@ table.grille tr.hl td { background: var(--accent-soft); }
       : "+" + pts + " points par rapport à 305" + (s.grp === "oui" ? ", moins la prime de responsabilité : " + (net > 0 ? "+" + net + " points payés en plus." : "salaire maintenu, sans surcoût.") : ", prime de responsabilité en plus (+170 €).");
     var cc = $("cc-chip");
     if (s.ccM > 200) { cc.textContent = "Au-dessus du plafond"; cc.className = "chip ko"; } else { cc.textContent = "Sous le plafond"; cc.className = "chip ok"; }
-    var netPpv = Math.round(3100 * (1 - 0.097 * 0.9825) / 10) * 10;
-    $("ppv-hint").textContent = s.ppv === "dec" ? "3 600 € (Robin inclus), exonérés de CSG/CRDS et d'impôt : l'équipe touche 3 600 €."
-      : s.ppv === "jan" ? "3 100 € (sans Robin), soumis à la CSG/CRDS : l'équipe touche environ " + fmt.format(netPpv) + " € avant impôt."
+    PPV_SAL.forEach(function (p) {
+      var off = s.ppv === "non" || (s.ppv === "jan" && p.sortant);
+      $("ppv-" + p.k).disabled = off;
+      $("ppv-row-" + p.k).className = "row" + (off ? " off" : "");
+    });
+    $("ppv-tot").textContent = fmt.format(c.ppv) + " €";
+    var netPpv = Math.round(c.ppv * (1 - 0.097 * 0.9825) / 10) * 10;
+    $("ppv-hint").textContent = s.ppv === "dec" ? "Versée en décembre 2026 (Robin inclus) : exonérée de CSG/CRDS et d'impôt, l'équipe touche " + fmt.format(c.ppv) + " €."
+      : s.ppv === "jan" ? "Versée en janvier 2027 : Robin, sorti au 31/12/2026, n'en bénéficie pas. Soumise à la CSG/CRDS, l'équipe touche environ " + fmt.format(netPpv) + " € avant impôt."
       : "Pas de PPV.";
 
     // tuiles
@@ -580,15 +664,15 @@ table.grille tr.hl td { background: var(--accent-soft); }
 
     // tableau
     var rows = [
-      ["Total des produits", PRODUITS, PRODUITS, "total"],
-      ["Charges hors mesures", CHARGES_HORS, CHARGES_HORS, ""],
+      ["Total des produits", PRODUITS + adjP, PRODUITS, "total"],
+      ["Charges hors mesures", CHARGES_HORS + adjC, CHARGES_HORS, ""],
       ["Reclassement de Gaëlle B.", c.gb, cBP.gb, "sub"],
       ["Reclassement de Gaëlle R.", c.gr, cBP.gr, "sub"],
       ["Remplacement de Robin (intervenants)", c.rempl, cBP.rempl, "sub"],
       ["Nouveau tarif sur les cours déjà attribués", c.attrib, cBP.attrib, "sub"],
       ["PPV", c.ppv, cBP.ppv, "sub"],
       ["Chèques cadeaux", c.cc, cBP.cc, "sub"],
-      ["Total des charges", CHARGES_HORS + cost, CHARGES_HORS + total(cBP), "total"],
+      ["Total des charges", CHARGES_HORS + adjC + cost, CHARGES_HORS + total(cBP), "total"],
       ["Résultat prévisionnel au 31/08/2027", res, resBP, "res"]
     ];
     var html = rows.map(function (r) {
@@ -602,10 +686,14 @@ table.grille tr.hl td { background: var(--accent-soft); }
     $("tbody").innerHTML = html;
 
 
-    drawChart(c, res);
+    drawChart(c, res, ADJ);
     renderGrille(s);
-    renderDetail(c, res);
+    renderDetail(c);
   }
+
+  buildTable("dt-ch", "ch");
+  buildTable("dt-pr", "pr");
+  $("reset-man").addEventListener("click", function () { OVR = {}; saveOvr(); update(); });
 
   function link(numId, rangeId) {
     $(numId).addEventListener("input", function () { $(rangeId).value = this.value; update(); });
@@ -613,7 +701,7 @@ table.grille tr.hl td { background: var(--accent-soft); }
   }
   link("gb-coef", "gb-coef-r");
   link("gr-coef", "gr-coef-r");
-  document.querySelectorAll("input").forEach(function (el) {
+  document.querySelectorAll("input:not(.amt)").forEach(function (el) {
     if (["gb-coef", "gb-coef-r", "gr-coef", "gr-coef-r"].indexOf(el.id) === -1) el.addEventListener("change", update);
     if (el.type === "number") el.addEventListener("input", update);
   });
