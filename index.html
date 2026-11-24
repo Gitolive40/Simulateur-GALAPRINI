@@ -640,7 +640,7 @@ table.dt td.calc { color: var(--muted); font-style: italic; }
     });
     $("ppv-tot").textContent = fmt.format(c.ppv) + " €";
     var netPpv = Math.round(c.ppv * (1 - 0.097 * 0.9825) / 10) * 10;
-    $("ppv-hint").textContent = s.ppv === "jan" ? "Versée en janvier 2027 : Robin, sorti au 31/12/2026, n'en bénéficie pas. Soumise à la CSG/CRDS, l'équipe touche environ " + fmt.format(netPpv) + " € avant impôt."
+    $("ppv-hint").textContent = s.ppv === "jan" ? "Versée en janvier 2027 : Robin, sorti au 31/12/2026, n'en bénéficie pas. Prélèvements déduits : 9,5 % de CSG/CRDS (9,7 % sur 98,25 % de la prime), puis impôt sur le revenu."
       : "Pas de PPV.";
 
     // tuiles
